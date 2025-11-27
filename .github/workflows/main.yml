@@ -1,0 +1,23 @@
+name: Build offline tar
+on:
+  workflow_dispatch:   # 手动触发
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        repository: akpw/mktxp-stack
+    - name: rewrite IP/password
+      run: |
+        sed -i 's/192.168.88.1/192.168.0.1/; s/password/lvylvy/' docker-compose-mktxp-stack.yml
+    - name: pull images
+      run: docker compose -f docker-compose-mktxp-stack.yml pull
+    - name: save bundle
+      run: |
+        docker save ghcr.io/akpw/mktxp:latest prom/prometheus:latest grafana/grafana:latest grafana/loki:latest grafana/promtail:latest -o mktxp-stack-192.168.0.1.tar
+    - name: upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: mktxp-stack-192.168.0.1
+        path: mktxp-stack-192.168.0.1.tar
